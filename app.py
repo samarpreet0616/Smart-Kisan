@@ -57,7 +57,7 @@ city_input = st.text_input(
 search = st.button("🌦 Get Weather")
 
 # ---------------- Final City Choice ----------------
-city = selected_city if selected_city else city_input+
+city = selected_city if selected_city else city_input
 
 # ---------------- Main Logic ----------------
 if search or selected_city:
