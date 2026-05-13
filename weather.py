@@ -26,7 +26,9 @@ def get_current_weather(city):
         return {
             "temp": data["current"]["temp_c"],
             "humidity": data["current"]["humidity"],
-            "condition": data["current"]["condition"]["text"]
+            "condition": data["current"]["condition"]["text"],
+            "city_name":data["location"]["name"],
+            "region":data["location"]["region"]
         }
 
     except requests.exceptions.RequestException:
@@ -112,3 +114,20 @@ def get_advisory(current_data, forecast_data):
         advice_list.append("Weather looks stable for next few days.")
 
     return advice_list
+
+
+def get_current_weather_by_location(lat,long):
+
+
+
+    location = f"{lat},{long}"
+
+    return get_current_weather(location)
+
+
+def get_forecast_by_location(lat,long):
+
+    location = f"{lat},{long}"
+
+    return get_forecast(location)
+
