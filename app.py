@@ -1,118 +1,195 @@
 import streamlit as st
-from weather import get_current_weather, get_forecast, get_advisory
-from history import load_history, save_city
+from weather import *
+from history import *
+from streamlit_geolocation import streamlit_geolocation
 
-# ---------------- Page Config ----------------
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="Smart Kisan 🌾",
+    page_title="Smart Kisan",
     page_icon="🌾",
     layout="wide"
 )
 
-# ---------------- Custom Width ----------------
+# ---------------- CUSTOM CSS ----------------
 st.markdown("""
 <style>
-.main .block-container{
-    max-width: 1140px;
+.main {
+    padding-top: 1rem;
+}
+
+.block-container {
     padding-top: 2rem;
     padding-bottom: 2rem;
 }
-div.stButton > button{
-    width:100%;
+
+h1, h2, h3 {
+    color: #1b5e20;
+}
+
+div.stButton > button {
+    width: 100%;
+    border-radius: 10px;
+    height: 45px;
+    font-weight: 600;
+}
+
+[data-testid="stMetric"] {
+    background-color: #f8fff8;
+    border: 1px solid #d8ead8;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.weather-card {
+    background: #f8fff8;
+    padding: 15px;
+    border-radius: 14px;
+    border: 1px solid #dcefdc;
+    text-align: center;
+}
+
+.advice-box {
+    background: #ecfff0;
+    padding: 12px;
+    border-left: 5px solid #2e7d32;
+    border-radius: 8px;
+    margin-bottom: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- Title ----------------
-st.title("🌾 Smart Kisan")
-st.caption("Live weather + forecast + advisory")
+# ---------------- HEADER ----------------
+st.markdown("""
+<h1 style='text-align:center;'>🌾 Smart Kisan</h1>
+<p style='text-align:center;color:gray;'>
+Live Weather • 3 Day Forecast • Smart Crop Advisory
+</p>
+<hr>
+""", unsafe_allow_html=True)
 
-# ---------------- Load Search History ----------------
+# ---------------- RECENT SEARCHES ----------------
 history = load_history()
 
-# ---------------- Recent Cities ----------------
 if history:
-    st.markdown("### 🕘 Recent Searches")
+    st.subheader("🕒 Recent Searches")
 
-    cols = st.columns(5)
+    cols = st.columns(len(history))
 
-    selected_city = None
-
-    for i, old_city in enumerate(history):
+    for i, item in enumerate(history):
         with cols[i]:
-            if st.button(old_city):
-                selected_city = old_city
-else:
-    selected_city = None
+            if st.button(item):
+                st.session_state["selected_city"] = item
 
-# ---------------- Search Section ----------------
-st.markdown("### Search City")
+# ---------------- SEARCH SECTION ----------------
+st.subheader("🔍 Search Weather")
 
-city_input = st.text_input(
-    label="",
-    placeholder="Enter city name...",
-    label_visibility="collapsed"
-)
+col1, col2 = st.columns([4, 1])
 
-search = st.button("🌦 Get Weather")
+with col1:
+    city_input = st.text_input(
+        "",
+        placeholder="Enter city name...",
+        label_visibility="collapsed"
+    )
 
-# ---------------- Final City Choice ----------------
-city = selected_city if selected_city else city_input
+with col2:
+    search_btn = st.button("Get Weather")
 
-# ---------------- Main Logic ----------------
-if search or selected_city:
+# ---------------- LOCATION SECTION ----------------
+st.subheader("📍 Quick Access")
 
-    if city.strip() == "":
-        st.error("Please enter a city name.")
+geo = streamlit_geolocation()
+location_btn = st.button("Use My Current Location")
+
+# ---------------- VARIABLES ----------------
+selected_city = st.session_state.get("selected_city", "")
+city = ""
+
+# ---------------- CITY SEARCH ----------------
+if search_btn:
+
+    city = city_input.strip()
+
+elif selected_city:
+
+    city = selected_city
+
+# ---------------- IF CITY EXISTS ----------------
+if city:
+
+    save_city(city)
+
+    current_data = get_current_weather(city)
+    forecast_data = get_forecast(city)
+    advice = get_advisory(current_data, forecast_data)
+
+# ---------------- LOCATION SEARCH ----------------
+elif location_btn:
+
+    if geo["latitude"] is not None and geo["longitude"] is not None:
+
+        lat = geo["latitude"]
+        lon = geo["longitude"]
+
+        current_data = get_current_weather_by_location(lat, lon)
+        forecast_data = get_forecast_by_location(lat, lon)
+        advice = get_advisory(current_data, forecast_data)
+
+        city = f'{current_data["city_name"]}, {current_data["region"]}'
 
     else:
-        save_city(city)
+        st.error("Please allow location access.")
+        st.stop()
 
-        current_data = get_current_weather(city)
+else:
+    st.stop()
 
-        if "error" in current_data:
-            st.error(current_data["error"])
+# ---------------- ERROR HANDLING ----------------
+if "error" in current_data:
+    st.error(current_data["error"])
+    st.stop()
 
-        else:
-            forecast_data = get_forecast(city)
-            advice_data = get_advisory(current_data, forecast_data)
+# ---------------- DISPLAY ----------------
+st.markdown("---")
+st.header(f"📍 {city}")
 
-            # ---------- Current Weather ----------
-            st.subheader(f"📍 {city.title()}")
+# ---------------- CURRENT WEATHER ----------------
+st.subheader("🌤 Current Weather")
 
-            c1, c2, c3 = st.columns(3)
+col1, col2, col3 = st.columns(3)
 
-            with c1:
-                st.metric("🌡 Temp", f'{current_data["temp"]}°C')
+with col1:
+    st.metric("🌡 Temperature", f'{current_data["temp"]} °C')
 
-            with c2:
-                st.metric("💧 Humidity", f'{current_data["humidity"]}%')
+with col2:
+    st.metric("💧 Humidity", f'{current_data["humidity"]}%')
 
-            with c3:
-                st.metric("☁ Condition", current_data["condition"])
+with col3:
+    st.metric("☁ Condition", current_data["condition"])
 
-            # ---------- Forecast ----------
-            st.markdown("### 📅 Forecast")
+# ---------------- FORECAST ----------------
+st.subheader("📅 3 Day Forecast")
 
-            f1, f2, f3 = st.columns(3)
+cols = st.columns(3)
 
-            for i, col in enumerate([f1, f2, f3]):
-                day = forecast_data[i]
+for i, day in enumerate(forecast_data):
 
-                with col:
-                    st.info(
-                        f"""
-**{day["date"]}**
+    with cols[i]:
+        st.markdown(f"""
+        <div class="weather-card">
+        <h4>{day["date"]}</h4>
+        🌡 <b>{day["max_temp"]}°C</b><br>
+        ❄ {day["min_temp"]}°C<br>
+        ☁ {day["condition"]}<br>
+        🌧 {day["rain_chance"]}% Rain
+        </div>
+        """, unsafe_allow_html=True)
 
-🌡 Max: {day["max_temp"]}°C  
-❄ Min: {day["min_temp"]}°C  
-☁ {day["condition"]}  
-🌧 Rain: {day["rain_chance"]}%
-"""
-                    )
+# ---------------- ADVISORY ----------------
+st.subheader("🌾 Smart Advisory")
 
-            # ---------- Advisory ----------
-            st.markdown("### 🌾 Smart Advisory")
-
-            for advice in advice_data:
-                st.warning(advice)
+for item in advice:
+    st.markdown(
+        f"<div class='advice-box'>✅ {item}</div>",
+        unsafe_allow_html=True
+    )
