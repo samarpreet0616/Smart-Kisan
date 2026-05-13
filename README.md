@@ -1,68 +1,79 @@
 # 🌾 Smart Kisan
 
-Smart Kisan is a Python + Streamlit based smart farming assistant that helps users make better daily agricultural decisions using real-time weather data.
+Smart Kisan is a weather-based advisory web app built with **Python + Streamlit** to help farmers and users make smarter daily decisions using live weather data.
 
 ## 🚀 Features
 
-* 🌤 Live weather updates by city
-* 📅 3-day weather forecast
-* 🌧 Rain probability tracking
-* 🌾 Smart advisory system based on weather conditions
-* 🕘 Recent city search history
-* ❌ Error handling for invalid city names / network issues
-* 💻 Clean and responsive Streamlit UI
+✅ Search weather by city name
+✅ Use current location automatically
+✅ Displays real detected location name
+✅ Live temperature, humidity, weather condition
+✅ 3-Day weather forecast
+✅ Smart advisory system based on heat, rain, humidity
+✅ Recent search history
+✅ Clean responsive UI
+
+---
 
 ## 🛠 Tech Stack
 
 * Python
 * Streamlit
-* Requests
 * WeatherAPI
-* JSON
-* python-dotenv
+* Streamlit Geolocation
+* JSON (search history storage)
+
+---
+
+## 🌦 Smart Advisory Examples
+
+* Rain expected in next few days
+* Avoid extra irrigation
+* High humidity warning
+* Heat stress alert
+* Stable weather conditions
+
+---
 
 ## 📂 Project Structure
 
-Smart-Kisan/
-│── app.py
-│── weather.py
-│── history.py
-│── history.json
-│── requirements.txt
+app.py → Main Streamlit frontend
+weather.py → Weather API + advisory logic
+history.py → Recent searches storage
+requirements.txt → Dependencies
 
-## ⚙️ Installation
+---
 
-1. Clone the repository
+## ▶ Run Locally
 
-```bash
-git clone https://github.com/yourusername/Smart-Kisan.git
-```
+Install dependencies:
 
-2. Install dependencies
-
-```bash
 pip install -r requirements.txt
-```
 
-3. Create `.env` file
+Run app:
 
-```env
-WEATHER_API_KEY=your_api_key_here
-```
-
-4. Run the app
-
-```bash
 streamlit run app.py
-```
 
-## 🌱 Future Improvements
+---
 
-* Crop-specific advisories
-* Mandi price integration
-* Soil data support
-* Multi-language support
-* Cloud deployment
+## 🔐 Environment Variable
+
+Create `.env` file:
+
+WEATHER_API_KEY=your_api_key_here
+
+---
+
+## 🌍 Live Goal
+
+Built to become a simple and practical smart farming assistant.
+
+---
+
+## 👨‍💻 Developer
+
+Built by Samarpreet Singh
+
 
 ## 👨‍💻 Author
 
